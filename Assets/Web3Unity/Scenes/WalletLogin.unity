@@ -347,7 +347,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: " MetaMask ile giri\u015Fin yap\u0131n\u0131z l\xFCtfen\n"
+  m_Text: " MetaMask ile giri\u015F yap\u0131n\u0131z l\xFCtfen\n"
 --- !u!222 &382110509
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -58,6 +58,8 @@ public class Puzzle : MonoBehaviour
         winText.gameObject.SetActive(false);
 
         mint.enabled = false;
+
+        PlayerPrefs.SetInt("level2puzzleUnlocked", 0);
     }
 
     private void Update()
@@ -83,6 +85,7 @@ public class Puzzle : MonoBehaviour
             showSolutionButton.gameObject.SetActive(false);
             completedPuzzleImage.SetActive(true);
             mint.enabled = true;
+            PlayerPrefs.SetInt("level2puzzleUnlocked", 1);
 
         }
 

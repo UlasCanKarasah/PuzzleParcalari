@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public sealed class Tile : MonoBehaviour
 {
@@ -32,6 +33,11 @@ public sealed class Tile : MonoBehaviour
     public Tile Top => y > 0 ? Board.Instance.Tiles[x, y - 1] : null;
     public Tile Right => x < Board.Instance.Width - 1 ? Board.Instance.Tiles[x + 1, y] : null;
     public Tile Bottom => y < Board.Instance.Width - 1 ? Board.Instance.Tiles[x, y + 1] : null;
+    //capraz kontrol
+    public Tile TopLeft => x > 0 && y > 0 ? Board.Instance.Tiles[x - 1, y - 1] : null;
+    public Tile TopRight => x < Board.Instance.Width - 1 && y > 0 ? Board.Instance.Tiles[x + 1, y - 1] : null;
+    public Tile BottomLeft => x > 0 && y < Board.Instance.Width - 1 ? Board.Instance.Tiles[x - 1, y + 1] : null;
+    public Tile BottomRight => x < Board.Instance.Width - 1 && y < Board.Instance.Width - 1 ? Board.Instance.Tiles[x + 1, y + 1] : null;
 
 
     public Tile[] Neighbours => new[]
@@ -40,6 +46,15 @@ public sealed class Tile : MonoBehaviour
         Top,
         Right,
         Bottom,
+
+    };
+
+    public Tile[] NeigboursCross => new[]
+    {
+        TopLeft,
+        TopRight,
+        BottomLeft,
+        BottomRight,
     };
 
 
@@ -69,12 +84,26 @@ public sealed class Tile : MonoBehaviour
 
         //komsularin iceriklerini kontrol et
 
-        foreach(var neighbour in Neighbours)
+        if (SceneManager.GetActiveScene().name == "Match3")
         {
-            if (neighbour == null || exclude.Contains(neighbour) || neighbour.Item != Item) continue;
+            foreach (var neighbour in Neighbours)
+            {
+                if (neighbour == null || exclude.Contains(neighbour) || neighbour.Item != Item) continue;
 
-            result.AddRange(neighbour.GetConnectedTiles(exclude));
+                result.AddRange(neighbour.GetConnectedTiles(exclude));
+            }
         }
+
+        if (SceneManager.GetActiveScene().name == "Match3 level2")
+        {
+            foreach (var neighbour in NeigboursCross)
+            {
+                if (neighbour == null || exclude.Contains(neighbour) || neighbour.Item != Item) continue;
+
+                result.AddRange(neighbour.GetConnectedTiles(exclude));
+            }
+        }
+
 
         return result;
 

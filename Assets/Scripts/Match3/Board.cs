@@ -7,14 +7,16 @@ using DG.Tweening;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public sealed class Board : MonoBehaviour
 {
     public static Board Instance { get; private set; }
 
-    [SerializeField] private AudioClip collectSound;
+    [SerializeField] public AudioClip collectSound;
 
-    [SerializeField] private AudioSource audioSource;
+    [SerializeField] public AudioSource audioSource;
 
     public Row[] rows;
 
@@ -29,9 +31,15 @@ public sealed class Board : MonoBehaviour
 
     private void Awake() => Instance = this;
 
+    public float timeLimit = 30f;
+    private float currentTime;
+
+    public Text timeText;
+
 
     private void Start()
     {
+        currentTime = timeLimit;
 
         Tiles = new Tile[rows.Max(selector: rows => rows.tiles.Length), rows.Length];
 
@@ -51,19 +59,34 @@ public sealed class Board : MonoBehaviour
             }
 
         }
-
+        
+        RemoveMatchesAtStart();
         Pop();
 
     }
 
     private void Update()
     {
-       
 
-        foreach(var connectedTile in Tiles[0,0].GetConnectedTiles())
+        if (timeText != null)
         {
-            connectedTile.icon.transform.DOScale(1.25f, TweenDuration).Play();
+           currentTime -= Time.deltaTime;
+           timeText.text = "Time: " + currentTime.ToString("F2");
+           if (currentTime <= 0)
+           {
+                TimeUp();
+           }
         }
+        else
+        {
+            currentTime = timeLimit; //reset time when scene changed
+        }
+    }
+
+    void TimeUp()
+    {
+        Time.timeScale = 0;
+        SceneManager.LoadScene("OyunBitti");
     }
 
     public async void Select(Tile tile)
@@ -119,23 +142,32 @@ public sealed class Board : MonoBehaviour
 
        //yer degistir
 
-        sequence.Join(icon1Transform.DOMove(icon2Transform.position, TweenDuration))
-            .Join(icon2Transform.DOMove(icon1Transform.position, TweenDuration));
 
-        await sequence.Play().AsyncWaitForCompletion();
+        if(CanPop())
+        {
+            return;
+        }
+        else
+        {
+            sequence.Join(icon1Transform.DOMove(icon2Transform.position, TweenDuration))
+                    .Join(icon2Transform.DOMove(icon1Transform.position, TweenDuration));
+
+            await sequence.Play().AsyncWaitForCompletion();
 
 
-        //bilgi degistir
-        icon1Transform.SetParent(tile2.transform);
-        icon2Transform.SetParent(tile1.transform);
+            //bilgi degistir
+            icon1Transform.SetParent(tile2.transform);
+            icon2Transform.SetParent(tile1.transform);
 
-        tile1.icon = icon2;
-        tile2.icon = icon1;
+            tile1.icon = icon2;
+            tile2.icon = icon1;
 
-        var tile1Item = tile1.Item;
+            var tile1Item = tile1.Item;
 
-        tile1.Item = tile2.Item;
-        tile2.Item = tile1Item;
+            tile1.Item = tile2.Item;
+            tile2.Item = tile1Item;
+        }
+
  
 
     }
@@ -203,6 +235,34 @@ public sealed class Board : MonoBehaviour
             }
         }
             
+    }
+
+    public void RemoveMatchesAtStart()
+    {
+        bool matchesExist;
+        do
+        {
+            matchesExist = false;
+            for (int x = 0; x < Width; x++)
+            {
+                for (int y = 0; y < Height; y++)
+                {
+                    var tile = Tiles[x, y];
+                    var connectedTiles = tile.GetConnectedTiles();
+
+                    if (connectedTiles.Count < 3) continue;
+
+                    matchesExist = true;
+                    
+
+                    foreach (var matchTile in connectedTiles)
+                    {
+                        matchTile.Item = ItemDatabase.Items[Random.Range(0, ItemDatabase.Items.Length)];
+                    }
+                }
+            }
+        }
+        while (matchesExist);
     }
 
 
